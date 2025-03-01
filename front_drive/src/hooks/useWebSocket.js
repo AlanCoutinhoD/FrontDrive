@@ -1,39 +1,43 @@
 import { useEffect, useState } from 'react';
 
+let socketInstance = null; // Singleton para la conexión WebSocket
+
 const useWebSocket = (url) => {
-    const [socket, setSocket] = useState(null);
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
-        const newSocket = new WebSocket(url);
-        setSocket(newSocket);
+        // Solo crear una nueva conexión si no hay una activa
+        if (!socketInstance) {
+            socketInstance = new WebSocket(url);
 
-        newSocket.onopen = () => {
-            console.log('Conexión WebSocket establecida');
-        };
+            socketInstance.onopen = () => {
+                console.log('Conexión WebSocket establecida');
+            };
 
-        newSocket.onmessage = (event) => {
-            console.log('Mensaje recibido:', event.data);
-            setMessages((prevMessages) => [...prevMessages, event.data]);
-        };
+            socketInstance.onmessage = (event) => {
+                console.log('Mensaje recibido:', event.data);
+                setMessages((prevMessages) => [...prevMessages, event.data]);
+            };
 
-        newSocket.onerror = (error) => {
-            console.error('Error en WebSocket:', error);
-        };
+            socketInstance.onerror = (error) => {
+                console.error('Error en WebSocket:', error);
+            };
 
-        newSocket.onclose = (event) => {
-            console.log('Conexión WebSocket cerrada', event);
-        };
+            socketInstance.onclose = (event) => {
+                console.log('Conexión WebSocket cerrada', event);
+                socketInstance = null; // Permitir nueva conexión si se cierra
+            };
+        }
 
         // Cleanup function to close the socket when the component unmounts
         return () => {
-            if (newSocket.readyState === WebSocket.OPEN) {
-                newSocket.close();
+            if (socketInstance && socketInstance.readyState === WebSocket.OPEN) {
+                socketInstance.close();
             }
         };
-    }, [url]);
+    }, [url]); // Solo dependemos de la URL
 
-    return { socket, messages };
+    return { socket: socketInstance, messages };
 };
 
 export default useWebSocket;

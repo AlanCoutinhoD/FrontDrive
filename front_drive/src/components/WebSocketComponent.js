@@ -2,7 +2,7 @@ import React from 'react';
 import useWebSocket from '../hooks/useWebSocket';
 
 const WebSocketComponent = () => {
-    const { messages } = useWebSocket('ws://localhost:8080/ws');
+    const { messages } = useWebSocket('ws://localhost:3000');
 
     return (
         <div>
