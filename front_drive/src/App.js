@@ -1,13 +1,17 @@
 import React from 'react';
-import WebSocketComponent from './components/WebSocketComponent';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ProductList from './views/pages/ProductList';
+import OrderConfirmation from './views/pages/OrderConfirmation';
 import './App.css';
 
 const App = () => {
     return (
-        <div className="container mt-5">
-            <h1>Aplicación WebSocket</h1>
-            <WebSocketComponent />
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/" element={<ProductList />} />
+                <Route path="/order/:id" element={<OrderConfirmation />} />
+            </Routes>
+        </Router>
     );
 };
 
