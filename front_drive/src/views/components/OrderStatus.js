@@ -1,9 +1,11 @@
 import React from 'react';
 
-const OrderStatus = ({ status }) => {
+const OrderStatus = ({ status, show }) => {
+    if (!show) return null;
+
     const steps = [
         { id: 1, title: 'Confirmando pedido en el servidor', completed: status >= 1 },
-        { id: 2, title: 'Procesando pago', completed: status >= 2 },
+        { id: 2, title: 'Preparando la orden', completed: status >= 2 },
         { id: 3, title: 'Preparando envío', completed: status >= 3 },
         { id: 4, title: 'Pedido confirmado', completed: status >= 4 }
     ];

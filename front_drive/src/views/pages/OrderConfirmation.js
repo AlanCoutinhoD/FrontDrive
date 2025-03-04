@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import OrderStatus from '../components/OrderStatus';
+import useWebSocket from '../../hooks/useWebSocket';
 
 const OrderConfirmation = () => {
     const { id } = useParams();
@@ -8,6 +9,10 @@ const OrderConfirmation = () => {
     const [loading, setLoading] = useState(true);
     const [orderStatus, setOrderStatus] = useState(0);
     const [quantity, setQuantity] = useState(2);
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [showStatus, setShowStatus] = useState(false);
+    const { messages, isConnected } = useWebSocket('ws://localhost:3001/ws');
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -17,12 +22,11 @@ const OrderConfirmation = () => {
                     throw new Error('Producto no encontrado');
                 }
                 const data = await response.json();
-                console.log('Producto obtenido:', data);
                 setProduct(data);
                 setLoading(false);
-                simulateOrderProcess();
             } catch (error) {
                 console.error('Error al obtener el producto:', error);
+                setError('Error al cargar el producto');
                 setLoading(false);
             }
         };
@@ -30,8 +34,51 @@ const OrderConfirmation = () => {
         fetchProduct();
     }, [id]);
 
-    const simulateOrderProcess = () => {
-        const steps = [1, 2, 3, 4];
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage === "ENVIO PREPARADO") {
+                setOrderStatus(2);
+                continueOrderProcess(3);
+            }
+        }
+    }, [messages]);
+
+    const createOrder = async () => {
+        try {
+            setShowStatus(true);
+            setOrderStatus(1);
+            setError(null);
+            setSuccessMessage(null);
+
+            const response = await fetch('http://localhost:8080/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idProduct: parseInt(id),
+                    quantity: quantity
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) {
+                setSuccessMessage(data.message);
+            } else {
+                throw new Error(data.message || 'Error al crear la orden');
+            }
+        } catch (error) {
+            console.error('Error al crear la orden:', error);
+            setError(error.message || 'Error al procesar la orden');
+            setOrderStatus(0);
+            setShowStatus(false);
+        }
+    };
+
+    const continueOrderProcess = (startFrom) => {
+        const steps = [startFrom, 4];
         steps.forEach((step, index) => {
             setTimeout(() => {
                 setOrderStatus(step);
@@ -52,6 +99,18 @@ const OrderConfirmation = () => {
             </Link>
             
             <h2 className="mb-4">Confirmar Pedido</h2>
+            
+            {error && (
+                <div className="alert alert-danger" role="alert">
+                    {error}
+                </div>
+            )}
+
+            {successMessage && (
+                <div className="alert alert-success" role="alert">
+                    {successMessage}
+                </div>
+            )}
             
             <div className="row">
                 <div className="col-md-6">
@@ -77,6 +136,7 @@ const OrderConfirmation = () => {
                                             className="btn btn-outline-secondary" 
                                             type="button"
                                             onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                                            disabled={orderStatus > 0}
                                         >-</button>
                                         <input 
                                             type="text" 
@@ -88,6 +148,7 @@ const OrderConfirmation = () => {
                                             className="btn btn-outline-secondary" 
                                             type="button"
                                             onClick={() => setQuantity(quantity + 1)}
+                                            disabled={orderStatus > 0}
                                         >+</button>
                                     </div>
                                 </div>
@@ -105,7 +166,7 @@ const OrderConfirmation = () => {
                             <button 
                                 className="btn btn-danger w-100 mt-4"
                                 disabled={orderStatus > 0}
-                                onClick={() => setOrderStatus(1)}
+                                onClick={createOrder}
                             >
                                 Confirmar Compra
                             </button>
@@ -114,7 +175,11 @@ const OrderConfirmation = () => {
                 </div>
                 
                 <div className="col-md-6">
-                    <OrderStatus status={orderStatus} />
+                    <OrderStatus 
+                        status={orderStatus} 
+                        show={showStatus} 
+                        isConnected={isConnected}
+                    />
                 </div>
             </div>
         </div>
