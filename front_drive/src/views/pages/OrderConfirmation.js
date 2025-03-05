@@ -12,12 +12,12 @@ const OrderConfirmation = () => {
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [showStatus, setShowStatus] = useState(false);
-    const { messages, isConnected } = useWebSocket('ws://localhost:3001/ws');
+    const { messages, isConnected, clientId } = useWebSocket('ws://localhost:3001/ws');
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/products/${id}`);
+                const response = await fetch(`http://35.174.107.145:8080/products/${id}`);
                 if (!response.ok) {
                     throw new Error('Producto no encontrado');
                 }
@@ -51,15 +51,18 @@ const OrderConfirmation = () => {
             setError(null);
             setSuccessMessage(null);
 
+            const orderData = {
+                idProduct: parseInt(id),
+                quantity: quantity,
+                idClient: clientId
+            };
+
             const response = await fetch('http://localhost:8080/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    idProduct: parseInt(id),
-                    quantity: quantity
-                })
+                body: JSON.stringify(orderData)
             });
 
             const data = await response.json();

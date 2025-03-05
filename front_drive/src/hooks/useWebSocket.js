@@ -4,6 +4,7 @@ let socketInstance = null; // Singleton para la conexión WebSocket
 
 const useWebSocket = (url) => {
     const [messages, setMessages] = useState([]);
+    const [clientId, setClientId] = useState(null);
 
     useEffect(() => {
         // Solo crear una nueva conexión si no hay una activa
@@ -16,6 +17,13 @@ const useWebSocket = (url) => {
 
             socketInstance.onmessage = (event) => {
                 console.log('Mensaje recibido:', event.data);
+                const data = JSON.parse(event.data);
+                
+                // Manejar el mensaje de conexión inicial
+                if (data.type === 'connection') {
+                    setClientId(data.clientId);
+                }
+                
                 setMessages((prevMessages) => [...prevMessages, event.data]);
             };
 
@@ -37,7 +45,7 @@ const useWebSocket = (url) => {
         };
     }, [url]); // Solo dependemos de la URL
 
-    return { socket: socketInstance, messages };
+    return { socket: socketInstance, messages, clientId };
 };
 
 export default useWebSocket;

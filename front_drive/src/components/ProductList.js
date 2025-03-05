@@ -8,7 +8,7 @@ const ProductList = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch('http://localhost:8080/products');
+                const response = await fetch('http://3.221.52.131:8080/products');
                 const data = await response.json();
                 setProducts(data);
             } catch (error) {
