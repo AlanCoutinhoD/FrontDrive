@@ -8,7 +8,8 @@ const ProductList = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch('http://3.221.52.131:8080/products');
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/products`);
+                
                 const data = await response.json();
                 setProducts(data);
             } catch (error) {
@@ -26,7 +27,7 @@ const ProductList = () => {
     return (
         <div className="container mt-5">
             <h1 className="text-center mb-4">日本の宝物</h1>
-            <h2 className="text-center mb-5">Japanese Treasures Shop</h2>
+            <h2 className="text-center mb-5">Tiendita China</h2>
             <div className="row">
                 {products.map(product => (
                     <ProductCard key={product.id} product={product} />

@@ -1,8 +1,8 @@
 import React from 'react';
-import useWebSocket from '../hooks/useWebSocket';
+import useWebSocket from '../../hooks/useWebSocket';
 
 const WebSocketComponent = () => {
-    const { messages } = useWebSocket('ws://localhost:3000');
+    const { messages } = useWebSocket(process.env.REACT_APP_WS_URL);
 
     return (
         <div>
@@ -20,4 +20,4 @@ const WebSocketComponent = () => {
     );
 };
 
-export default WebSocketComponent; 
+export default WebSocketComponent;

@@ -12,12 +12,12 @@ const OrderConfirmation = () => {
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [showStatus, setShowStatus] = useState(false);
-    const { messages, isConnected, clientId } = useWebSocket('ws://localhost:3001/ws');
+    const { messages, isConnected, clientId } = useWebSocket(process.env.REACT_APP_WS_URL);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await fetch(`http://35.174.107.145:8080/products/${id}`);
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/products/${id}`);
                 if (!response.ok) {
                     throw new Error('Producto no encontrado');
                 }
@@ -36,8 +36,8 @@ const OrderConfirmation = () => {
 
     useEffect(() => {
         if (messages.length > 0) {
-            const lastMessage = messages[messages.length - 1];
-            if (lastMessage === "ENVIO PREPARADO") {
+            const lastMessage = JSON.parse(messages[messages.length - 1]);
+            if (lastMessage.Message === "ENVIO PREPARADO") {
                 setOrderStatus(2);
                 continueOrderProcess(3);
             }
@@ -57,7 +57,7 @@ const OrderConfirmation = () => {
                 idClient: clientId
             };
 
-            const response = await fetch('http://localhost:8080/orders', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
